@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Tap Timer by Mike</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      :root{
+        --color-red: rgb(207, 52, 52);
+        --color-yellow: rgb(245, 174, 16);
+        --color-green: rgb(63, 200, 64);
+      }
+
+      html, body, .section.full{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgb(61, 61, 61);
+        overflow: hidden;
+        user-select: none;
+        cursor: default;
+      }
+
+      .section,
+      .section.full{
+        width: 100%;
+        background-color: transparent;
+      }
+
+      body.red{
+        background-color: var(--color-red);
+      }
+
+      body.yellow{
+        background-color: var(--color-yellow);
+      }
+
+      body.green{
+        background-color: var(--color-green);
+      }
+
+      #time{
+        color: white;
+        font-size: 18vw;
+        font-family: "Menlo", "Roboto Mono", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="section full">
+      <div id="time">00:00.00</div>
+    </div>
+
+    <script>
+      let timer = {
+        startTime: null,
+        endTime: null,
+        running: false,
+        now(){
+          return new Date().getTime();
+        },
+        start(){
+          this.running = true;
+          this.startTime = this.now();
+        },
+        end(){
+          this.running = false;
+          this.endTime = this.now();
+        },
+        time(){
+          return this.running ? this.now() - this.startTime : this.endTime - this.startTime;
+        }
+      };
+
+      let armed = false;
+      let body = document.body;
+      let display = document.querySelector("#time");
+
+      let l = n => n < 10 ? "0" + n : n;
+
+      let updateLoop = () => {
+        if(timer.running){
+          body.className = "green";
+        } else if(armed){
+          body.className = "yellow";
+        } else{
+          body.className = "red";
+        }
+
+        let time = timer.time();
+
+        let mins = l(Math.floor(time/1000/60));
+        let secs = l(Math.floor(time/1000)%60);
+        let mili = l(Math.floor((time%1000)/10));
+
+        display.innerHTML = `${mins}:${secs}.${mili}`;
+
+        requestAnimationFrame(updateLoop);
+      };
+
+      document.addEventListener("keydown", e => {
+        if(e.which == 32){
+          if(!armed){
+            armed = true;
+          }
+        }
+      }, false);
+
+      document.addEventListener("keyup", e => {
+        if(e.which == 32){
+          if(armed){
+            armed = false;
+            if(timer.running){
+              timer.end();
+            } else{
+              timer.start();
+            }
+          }
+        }
+      }, false);
+
+      document.addEventListener("touchstart", e => {
+        if(!armed){
+          armed = true;
+        }
+      }, false);
+
+      document.addEventListener("touchend", e => {
+        if(armed){
+          armed = false;
+          if(timer.running){
+            timer.end();
+          } else{
+            timer.start();
+          }
+        }
+      }, false);
+
+      updateLoop();
+    </script>
+  </body>
+</html>
